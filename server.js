@@ -26,6 +26,10 @@ app.post("/thread", upload.none(), (req, res) => {
   console.log("creating a new thread", req.body)
   let sessionId = req.cookies.sid
   let username = sessions[sessionId]
+  if (username === undefined) {
+    res.send("Stop you hacker!")
+    return
+  }
   threads.push({
     user: username,
     desc: req.body.description
