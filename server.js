@@ -1,8 +1,11 @@
 let express = require("express")
 let app = express()
 let multer = require("multer")
-let upload = multer()
+let upload = multer({
+  dest: __dirname + '/uploads/'
+})
 let cookieParser = require('cookie-parser')
+app.use('/images', express.static(__dirname + '/uploads'))
 app.use(cookieParser());
 let threads = []
 let passwordsAssoc = {}
@@ -12,18 +15,29 @@ let h = (element, children) => {
 }
 let makePage = username => {
   let threadElements = threads.map(post => {
-    return '<div><h2>' + post.desc + '</h2><h4>' + post.user + '</h4></div>'
+    let imgElement = ""
+    if (post.imgPath) {
+      imgElement = '<img height="100px" src="' + post.imgPath + '"/>'
+    }
+    return '<div>' + imgElement + '<h2>' + post.desc + '</h2><h4> posted by' + post.user + '</h4></div>'
   })
   return h('html', [
     h('body', [
       h('h1', ['your username is ' + username]),
       h('div', threadElements),
       h('form action="/thread" method="POST" enctype="multipart/form-data"', [
+        h('input type="file" name="thread-img"', []),
         h('input type="text" name="description"', []),
         h('input type="submit"', [])])])])
 }
-app.post("/thread", upload.none(), (req, res) => {
+app.post("/thread", upload.single('thread-img'), (req, res) => {
   console.log("creating a new thread", req.body)
+  let file = req.file
+  console.log("the file", file)
+  let imagePath = undefined
+  if (file !== undefined) {
+    imagePath = '/images/' + file.filename
+  }
   let sessionId = req.cookies.sid
   let username = sessions[sessionId]
   if (username === undefined) {
@@ -32,7 +46,8 @@ app.post("/thread", upload.none(), (req, res) => {
   }
   threads.push({
     user: username,
-    desc: req.body.description
+    desc: req.body.description,
+    imgPath: imagePath
   })
   res.send(makePage(username))
 })
