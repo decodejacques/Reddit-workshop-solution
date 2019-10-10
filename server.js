@@ -45,6 +45,10 @@ app.post("/login", upload.none(), (req, res) => {
 })
 app.post("/signup", upload.none(), (req, res) => {
   console.log("request to /signup", req.body)
+  if (passwordsAssoc[req.body.username] !== undefined) {
+    res.send("Stop you hacker!")
+    return
+  }
   passwordsAssoc[req.body.username] = req.body.password
   res.send("<html><body> signup successful </body></html>")
 })
