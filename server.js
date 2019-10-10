@@ -21,7 +21,7 @@ let makePage = username => {
     }
     let postsByUser = threads.filter(thread => { return thread.user === username })
     let numPosts = postsByUser.length
-    return '<div>' + imgElement + '<h2>' + post.desc + '</h2><h4> posted by' + post.user + '(' + numPosts + ')</h4></div>'
+    return '<div>' + imgElement + '<h2>' + post.desc + '</h2><h4> posted by ' + post.user + '(' + numPosts + ')</h4></div>'
   })
   return h('html', [
     h('body', [
@@ -30,7 +30,12 @@ let makePage = username => {
       h('form action="/thread" method="POST" enctype="multipart/form-data"', [
         h('input type="file" name="thread-img"', []),
         h('input type="text" name="description"', []),
-        h('input type="submit"', [])])])])
+        h('input type="submit"', [])]),
+      h('h3', ['Change your name']),
+      h('form action="/change-username" method="POST" enctype="multipart/form-data"', [
+        h('input type="text" name="new-username"', []),
+        h('input type="submit"', [])]),
+    ])])
 }
 app.post("/thread", upload.single('thread-img'), (req, res) => {
   console.log("creating a new thread", req.body)
@@ -53,6 +58,32 @@ app.post("/thread", upload.single('thread-img'), (req, res) => {
   })
   res.send(makePage(username))
 })
+
+app.post("/change-username", upload.none(), (req, res) => {
+  console.log("Changing user's name", req.body)
+  let sessionId = req.cookies.sid
+  let username = sessions[sessionId]
+
+  let newUsername = req.body["new-username"]
+  passwordsAssoc[newUsername] = passwordsAssoc[username]
+  passwordsAssoc[username] = undefined
+  let allSessionIds = Object.keys(sessions)
+  allSessionIds.forEach(sessionId => {
+    let usernameOfSesssion = sessions[sessionId]
+    if (usernameOfSesssion === username) {
+      sessions[sessionId] = newUsername
+    }
+  })
+
+  threads.forEach(post => {
+    if (post.user === username) {
+      post.user = newUsername
+    }
+  })
+
+  res.send(makePage(newUsername))
+})
+
 app.post("/login", upload.none(), (req, res) => {
   console.log("request to /login", req.body)
   if (passwordsAssoc[req.body.username] !== req.body.password) {
