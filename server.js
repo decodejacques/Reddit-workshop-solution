@@ -19,7 +19,9 @@ let makePage = username => {
     if (post.imgPath) {
       imgElement = '<img height="100px" src="' + post.imgPath + '"/>'
     }
-    return '<div>' + imgElement + '<h2>' + post.desc + '</h2><h4> posted by' + post.user + '</h4></div>'
+    let postsByUser = threads.filter(thread => { return thread.user === username })
+    let numPosts = postsByUser.length
+    return '<div>' + imgElement + '<h2>' + post.desc + '</h2><h4> posted by' + post.user + '(' + numPosts + ')</h4></div>'
   })
   return h('html', [
     h('body', [
