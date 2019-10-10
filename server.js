@@ -10,12 +10,13 @@ let sessions = {}
 let h = (element, children) => {
   return '<' + element + '>' + children.join('\n') + '</' + element.split(' ').shift() + '>'
 }
-let makePage = () => {
+let makePage = username => {
   let threadElements = threads.map(post => {
     return '<div><h2>' + post.desc + '</h2><h4>' + post.user + '</h4></div>'
   })
   return h('html', [
     h('body', [
+      h('h1', ['your username is ' + username]),
       h('div', threadElements),
       h('form action="/thread" method="POST" enctype="multipart/form-data"', [
         h('input type="text" name="description"', []),
@@ -29,7 +30,7 @@ app.post("/thread", upload.none(), (req, res) => {
     user: username,
     desc: req.body.description
   })
-  res.send(makePage())
+  res.send(makePage(username))
 })
 app.post("/login", upload.none(), (req, res) => {
   console.log("request to /login", req.body)
@@ -40,7 +41,7 @@ app.post("/login", upload.none(), (req, res) => {
   let sessionId = '' + Math.floor(Math.random() * 1000000)
   sessions[sessionId] = req.body.username
   res.cookie('sid', sessionId);
-  res.send(makePage())
+  res.send(makePage(req.body.username))
 })
 app.post("/signup", upload.none(), (req, res) => {
   console.log("request to /signup", req.body)
