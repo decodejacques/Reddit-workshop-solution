@@ -10,6 +10,8 @@ app.use(cookieParser());
 let threads = []
 let passwordsAssoc = {}
 let sessions = {}
+let usernameColor = {}
+
 let h = (element, children) => {
   return '<' + element + '>' + children.join('\n') + '</' + element.split(' ').shift() + '>'
 }
@@ -21,7 +23,12 @@ let makePage = username => {
     }
     let postsByUser = threads.filter(thread => { return thread.user === username })
     let numPosts = postsByUser.length
-    return '<div>' + imgElement + '<h2>' + post.desc + '</h2><h4> posted by ' + post.user + '(' + numPosts + ')</h4></div>'
+    let style = '"color: black"'
+    if (usernameColor[username] !== undefined) {
+      style = '"color: ' + usernameColor[username] + '"'
+    }
+    let posterSection = h('span style=' + style, [post.user + '(' + numPosts + ')'])
+    return '<div>' + imgElement + '<h2>' + post.desc + '</h2><h4> posted by ' + posterSection + '</h4></div>'
   })
   return h('html', [
     h('body', [
@@ -35,6 +42,10 @@ let makePage = username => {
       h('form action="/change-username" method="POST" enctype="multipart/form-data"', [
         h('input type="text" name="new-username"', []),
         h('input type="submit"', [])]),
+      h('h3', ['Set username color']),
+      h('form action="/set-color" method="POST" enctype="multipart/form-data"', [
+        h('input type="text" name="text-color"', []),
+        h('input type="submit"', [])])
     ])])
 }
 app.post("/thread", upload.single('thread-img'), (req, res) => {
@@ -58,6 +69,15 @@ app.post("/thread", upload.single('thread-img'), (req, res) => {
   })
   res.send(makePage(username))
 })
+
+app.post("/set-color", upload.none(), (req, res) => {
+  console.log("Changing user's color", req.body)
+  let sessionId = req.cookies.sid
+  let username = sessions[sessionId]
+  usernameColor[username] = req.body["text-color"]
+  res.send(makePage(username))
+})
+
 
 app.post("/change-username", upload.none(), (req, res) => {
   console.log("Changing user's name", req.body)
