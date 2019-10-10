@@ -57,6 +57,12 @@ app.post("/signup", upload.none(), (req, res) => {
   res.send("<html><body> signup successful </body></html>")
 })
 app.get("/", (req, res) => {
+  let sessionId = req.cookies.sid
+  let username = sessions[sessionId]
+  if (username !== undefined) {
+    res.send(makePage(username))
+    return
+  }
   res.sendFile(__dirname + "/public/index.html")
 })
 app.listen(4000, () => {
